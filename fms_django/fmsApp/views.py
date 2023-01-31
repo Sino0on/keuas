@@ -60,6 +60,7 @@ def home(request):
     context['folders'] = folders
     context['postsLen'] = posts.count() + folders.count()
     print(request.build_absolute_uri())
+    print(context)
     return render(request, 'home.html', context)
 
 
@@ -130,6 +131,7 @@ def manage_post(request, pk=None):
 def manage_post_folder(request, pk=None):
     context['page_title'] = 'Manage Post'
     context['post'] = {}
+    print(context)
     print(pk)
     if pk:
         folder = Folder.objects.get(id=pk)
@@ -150,7 +152,7 @@ def manage_folder(request, pk=None):
 
 @login_required
 def save_post(request, pk=None):
-
+    print(context)
     resp = {'status': 'failed', 'msg': ''}
     if request.method == 'POST':
         if not request.POST['id'] == '':
@@ -171,7 +173,19 @@ def save_post(request, pk=None):
                 das.folder = Folder.objects.get(id=pk)
                 das.save()
             else:
-                form.save()
+
+                das = form.save(commit=False)
+
+                if context['on_page']:
+                    das.on_page = True
+                else:
+                    das.on_page = False
+                    print('сработало')
+                    das.user = request.user
+                das.on_page = True
+                print(das.user)
+                das.user = None
+                das.save()
             messages.success(request, 'File has been saved successfully.')
             resp['status'] = 'success'
         else:
@@ -212,6 +226,7 @@ def save_folder(request, pk=None):
                     das.on_page = True
                 else:
                     das.on_page = False
+                    print('сработал')
                     das.user = request.user
                 das.save()
                 messages.success(request, 'File has been saved successfully.')
